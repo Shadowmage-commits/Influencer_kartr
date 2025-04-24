@@ -178,25 +178,38 @@ def update_email_visibility(email, is_visible):
         return False
     
     try:
-        # Read the data file
-        df = pd.read_csv(DATABASE_CSV)
+        # Read the data file directly with CSV to ensure we handle all fields correctly
+        users = []
+        headers = []
+        user_found = False
         
-        # Check if the email exists
-        user = df[df['email'] == email]
-        if user.empty:
+        with open(DATABASE_CSV, 'r', newline='') as file:
+            reader = csv.reader(file)
+            headers = next(reader)  # Get the header row
+            
+            for row in reader:
+                if len(row) > 0 and row[1] == email:  # Email is in column index 1
+                    # Update the public_email field (last column)
+                    row[-1] = str(is_visible)
+                    user_found = True
+                users.append(row)
+        
+        if not user_found:
             print(f"Error: User with email {email} not found")
             return False
-        
-        # Update the public_email column
-        df.loc[df['email'] == email, 'public_email'] = str(is_visible)
-        
-        # Save the updated data
-        df.to_csv(DATABASE_CSV, index=False)
-        
+            
+        # Write back the updated data
+        with open(DATABASE_CSV, 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(headers)
+            writer.writerows(users)
+            
         print(f"Successfully updated email visibility for {email} to {is_visible}")
         return True
     except Exception as e:
         print(f"Error updating email visibility: {e}")
+        import traceback
+        traceback.print_exc()
         return False
 
 def search_users(query, respect_privacy=True):
@@ -215,29 +228,34 @@ def search_users(query, respect_privacy=True):
         return []
     
     try:
-        # Read the data file
-        df = pd.read_csv(DATABASE_CSV)
+        # Read the data file directly with CSV to ensure we handle all fields correctly
+        users = []
+        with open(DATABASE_CSV, 'r', newline='') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                users.append(row)
         
         # Apply privacy filter if needed
         if respect_privacy:
             # Only return users with public_email set to True
-            df = df[df['public_email'].astype(str) == 'True']
+            users = [user for user in users if str(user.get('public_email', '')).lower() == 'true']
         
         # Search by username or email
-        mask = (
-            df['username'].str.contains(query, case=False, na=False) | 
-            df['email'].str.contains(query, case=False, na=False)
-        )
-        matches = df[mask]
+        results = []
+        for user in users:
+            username = user.get('username', '').lower()
+            email = user.get('email', '').lower()
+            if query.lower() in username or query.lower() in email:
+                results.append(user)
         
-        if matches.empty:
+        if not results:
+            print(f"No users with public email found matching '{query}'")
             return []
             
-        # Convert to dictionary records
-        results = matches.to_dict('records')
-        
         print(f"Found {len(results)} users matching '{query}'")
         return results
     except Exception as e:
         print(f"Error searching users: {e}")
+        import traceback
+        traceback.print_exc()
         return []
