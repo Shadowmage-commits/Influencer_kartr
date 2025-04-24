@@ -1,0 +1,5 @@
+username,email,password,user_type,public_email
+admin,admin@example.com,pbkdf2:sha256:150000$WLYrkYEw$72b472d8b56dd90bb6a9fe52a3e0e49c5af20a5f3e59e45a7a42dcb10a80a6e6,sponsor,False
+demo_influencer,influencer@example.com,pbkdf2:sha256:150000$WLYrkYEw$72b472d8b56dd90bb6a9fe52a3e0e49c5af20a5f3e59e45a7a42dcb10a80a6e6,influencer,True
+john_doe,john@example.com,pbkdf2:sha256:150000$WLYrkYEw$72b472d8b56dd90bb6a9fe52a3e0e49c5af20a5f3e59e45a7a42dcb10a80a6e6,influencer,False
+jane_smith,jane@example.com,pbkdf2:sha256:150000$WLYrkYEw$72b472d8b56dd90bb6a9fe52a3e0e49c5af20a5f3e59e45a7a42dcb10a80a6e6,sponsor,True

@@ -23,6 +23,10 @@ args = "setup_workflow"
 task = "workflow.run"
 args = "Run Influencer_kartr"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Run Application"
+
 [[workflows.workflow]]
 name = "Setup Influencer_kartr"
 author = "agent"
@@ -64,6 +68,21 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd Influencer_kartr && python main.py"
+waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Run Application"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "FLASK_APP=main.py python main.py"
 waitForPort = 5000
 
 [deployment]

@@ -161,3 +161,83 @@ def save_analysis_to_csv(video_link, transcript, analysis_data, source="demo"):
     
     print(f"Successfully appended analysis data to {ANALYSIS_CSV}")
     return True
+
+def update_email_visibility(email, is_visible):
+    """
+    Update email visibility setting in database.csv
+    
+    Parameters:
+    - email: The user's email
+    - is_visible: Boolean indicating if the email should be public in searches
+    
+    Returns:
+    - Boolean indicating success/failure
+    """
+    if not os.path.exists(DATABASE_CSV):
+        print(f"Error: {DATABASE_CSV} not found")
+        return False
+    
+    try:
+        # Read the data file
+        df = pd.read_csv(DATABASE_CSV)
+        
+        # Check if the email exists
+        user = df[df['email'] == email]
+        if user.empty:
+            print(f"Error: User with email {email} not found")
+            return False
+        
+        # Update the public_email column
+        df.loc[df['email'] == email, 'public_email'] = str(is_visible)
+        
+        # Save the updated data
+        df.to_csv(DATABASE_CSV, index=False)
+        
+        print(f"Successfully updated email visibility for {email} to {is_visible}")
+        return True
+    except Exception as e:
+        print(f"Error updating email visibility: {e}")
+        return False
+
+def search_users(query, respect_privacy=True):
+    """
+    Search for users by username or email
+    
+    Parameters:
+    - query: Search query string
+    - respect_privacy: If True, only returns users with public_email=True
+    
+    Returns:
+    - List of user dictionaries matching the query
+    """
+    if not os.path.exists(DATABASE_CSV):
+        print(f"Error: {DATABASE_CSV} not found")
+        return []
+    
+    try:
+        # Read the data file
+        df = pd.read_csv(DATABASE_CSV)
+        
+        # Apply privacy filter if needed
+        if respect_privacy:
+            # Only return users with public_email set to True
+            df = df[df['public_email'].astype(str) == 'True']
+        
+        # Search by username or email
+        mask = (
+            df['username'].str.contains(query, case=False, na=False) | 
+            df['email'].str.contains(query, case=False, na=False)
+        )
+        matches = df[mask]
+        
+        if matches.empty:
+            return []
+            
+        # Convert to dictionary records
+        results = matches.to_dict('records')
+        
+        print(f"Found {len(results)} users matching '{query}'")
+        return results
+    except Exception as e:
+        print(f"Error searching users: {e}")
+        return []
